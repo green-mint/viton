@@ -28,12 +28,12 @@ def CreateDataset(opt):
     dataset.initialize(opt, mode='train', stage='warp')
     return dataset
 
-torch.cuda.set_device(opt.local_rank)
+torch.cuda.set_device(0)
 torch.distributed.init_process_group(
     'nccl',
     init_method='env://'
 )
-device = torch.device(f'cuda:{opt.local_rank}')
+device = torch.device(f'cuda:{0}')
 
 start_epoch, epoch_iter = 1, 0
 
@@ -53,7 +53,7 @@ if opt.PBAFN_warp_checkpoint is not None:
 warp_model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(warp_model).to(device)
 if opt.isTrain and len(opt.gpu_ids):
     model = torch.nn.parallel.DistributedDataParallel(
-        warp_model, device_ids=[opt.local_rank])
+        warp_model, device_ids=[0])
 
 params_warp = [p for p in model.parameters()]
 optimizer_warp = torch.optim.Adam(
@@ -70,7 +70,7 @@ if opt.pretrain_checkpoint_D is not None:
 discriminator = torch.nn.SyncBatchNorm.convert_sync_batchnorm(discriminator).to(device)
 if opt.isTrain and len(opt.gpu_ids):
     discriminator = torch.nn.parallel.DistributedDataParallel(
-        discriminator, device_ids=[opt.local_rank])
+        discriminator, device_ids=[0])
 
 params_D = list(filter(lambda p: p.requires_grad,
                 discriminator.parameters()))

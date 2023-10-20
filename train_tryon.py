@@ -32,12 +32,12 @@ os.makedirs(run_path, exist_ok=True)
 os.makedirs(sample_path, exist_ok=True)
 iter_path = os.path.join(opt.checkpoints_dir, opt.name, 'iter.txt')
 
-torch.cuda.set_device(opt.local_rank)
+torch.cuda.set_device(0)
 torch.distributed.init_process_group(
     'nccl',
     init_method='env://'
 )
-device = torch.device(f'cuda:{opt.local_rank}')
+device = torch.device(f'cuda:{0}')
 
 train_data = CreateDataset(opt)
 train_sampler = DistributedSampler(train_data)
@@ -52,7 +52,7 @@ if opt.PBAFN_gen_checkpoint is not None:
     load_checkpoint_parallel(gen_model, opt.PBAFN_gen_checkpoint)
 gen_model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(gen_model).to(device)
 if opt.isTrain and len(opt.gpu_ids):
-    model_gen = torch.nn.parallel.DistributedDataParallel(gen_model, device_ids=[opt.local_rank])
+    model_gen = torch.nn.parallel.DistributedDataParallel(gen_model, device_ids=[0])
 
 params_gen = [p for p in model_gen.parameters()]
 optimizer_gen = torch.optim.Adam(params_gen, lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -66,7 +66,7 @@ if opt.pretrain_checkpoint_D is not None:
     load_checkpoint_parallel(discriminator, opt.pretrain_checkpoint_D)
 discriminator = torch.nn.SyncBatchNorm.convert_sync_batchnorm(discriminator).to(device)
 if opt.isTrain and len(opt.gpu_ids):
-    discriminator = torch.nn.parallel.DistributedDataParallel(discriminator, device_ids=[opt.local_rank])
+    discriminator = torch.nn.parallel.DistributedDataParallel(discriminator, device_ids=[0])
 
 params_D = list(filter(lambda p: p.requires_grad,
                 discriminator.parameters()))
