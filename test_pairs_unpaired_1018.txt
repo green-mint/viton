@@ -1,0 +1,1 @@
+/content/gp/person.png /content/gp/product.png upper
