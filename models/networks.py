@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.parallel
 from torchvision import models
-from options.train_options import TrainOptions
+from options.default import Opts
 import os
 import functools
 from torch.nn.utils import spectral_norm
 
-opt = TrainOptions().parse()
+opt = Opts()
 
 def set_requires_grad(nets, requires_grad=False):
     if not isinstance(nets, list):
